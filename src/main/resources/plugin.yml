@@ -1,0 +1,6 @@
+main: dev.slohth.oitc.OITC
+name: OITC
+version: "DEV-1.0"
+description: One in the chamber plugin
+author: Slohth
+api-version: 1.16
