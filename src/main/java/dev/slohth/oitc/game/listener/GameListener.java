@@ -29,7 +29,9 @@ public class GameListener implements Listener {
      */
     @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
-        core.getUserManager().findById(e.getPlayer().getUniqueId()).ifPresent(p -> e.setCancelled(true));
+        core.getUserManager().findById(e.getPlayer().getUniqueId()).ifPresent(p -> {
+            if (p.isInGame() && p.getGame().getState() == GameState.ACTIVE) { e.setCancelled(true); }
+        });
     }
 
     /**
@@ -44,7 +46,7 @@ public class GameListener implements Listener {
             if (e.getHitEntity() != null && e.getHitEntity() instanceof Player) {
                 Optional<User> killed = core.getUserManager().findById(e.getHitEntity().getUniqueId());
 
-                if (!killed.isPresent() || !killer.isPresent()) return;
+                if (!killed.isPresent() || !killer.isPresent() || ((Player) e.getEntity().getShooter()).getUniqueId() == e.getHitEntity().getUniqueId()) return;
 
                 if (killed.get().isInGame() && killer.get().isInGame() && killed.get().getGame().getState() == GameState.ACTIVE && killed.get().getGame().equals(killer.get().getGame())) {
                     killed.get().getGame().handleRespawn(killed.get(), killer.get());

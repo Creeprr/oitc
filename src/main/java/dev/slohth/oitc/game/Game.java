@@ -89,7 +89,7 @@ public class Game {
         if (user.getPlayer().isGlowing()) user.getPlayer().setGlowing(false);
 
         if (user.getCached() != null) {
-            user.getPlayer().getInventory().setContents(user.getCached().getContents());
+            user.getPlayer().getInventory().setContents(user.getCached());
         } else { user.getPlayer().getInventory().clear(); }
 
         user.getPlayer().setGameMode(GameMode.ADVENTURE);
@@ -110,6 +110,7 @@ public class Game {
      * @param killer The killer (null if none)
      */
     public void handleRespawn(@Nonnull User killed, @Nullable User killer) {
+        if (killer != null) killer.setKillstreak(killer.getKillstreak() + 1);
         if (killer != null && this.players.containsKey(killer)) {
             this.players.replace(killer, this.players.get(killer) + 1);
             if (this.players.get(killer) >= 20) this.end(killer);
@@ -126,11 +127,10 @@ public class Game {
         if (killer != null) {
             killer.getPlayer().playEffect(killed.getPlayer().getLocation().add(0, 0.5, 0), Effect.MOBSPAWNER_FLAMES, 1);
             killer.getPlayer().playSound(killer.getPlayer().getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 100, 0);
-            killer.setKillstreak(killer.getKillstreak() + 1);
             if (killer.getKillstreak() % 5 == 0) killer.getPlayer().getWorld().strikeLightningEffect(killer.getPlayer().getLocation());
             for (User u : this.players.keySet())
                 u.msg("&3" + killed.getPlayer().getName() + " &7was killed by &3" + killer.getPlayer().getName() +
-                        (killer.getKillstreak() == 1 ? "" : "&7 (" + (killer.getKillstreak() % 5 == 0 ? "&6" : "") + killer.getKillstreak() + "x&7)"));
+                        (killer.getKillstreak() == 1 ? "" : "&7 (" + (killer.getKillstreak() % 5 == 0 ? (killer.getKillstreak() == 20 ? "&b" : "&6") : "") + killer.getKillstreak() + "x&7)"));
         }
 
         new BukkitRunnable() {
@@ -207,14 +207,17 @@ public class Game {
                     + (entry.getValue() == 1 ? " kill" : " kills"));
             index++;
         }
+        message.add(" ");
 
         for (User u : this.players.keySet()) {
             if (!u.equals(winner)) u.getPlayer().setGameMode(GameMode.SPECTATOR);
             u.getPlayer().sendTitle(ChatColor.GOLD + winner.getPlayer().getName(), "Won the game!", 20, 20, 20);
+            Bukkit.getScheduler().runTaskLater(core, () -> u.msg(" ", "&6" + winner.getPlayer().getName() + " has won the game!", " "), 10);
             Bukkit.getScheduler().runTaskLater(core, () -> u.msg(CC.trns(message).toArray(new String[0])), 20);
             Bukkit.getScheduler().runTaskLater(core, () -> Game.this.removeUser(u), 20 * 5);
         }
 
+        if (winner.getKillstreak() == 20) winner.getPlayer().getInventory().addItem(new ItemBuilder(Material.PUFFERFISH).name("&bWallace").build());
         winner.getPlayer().getInventory().setHelmet(new ItemBuilder(Material.GOLDEN_HELMET).enchantment(Enchantment.DURABILITY).build());
         winner.getPlayer().setGlowing(true);
     }

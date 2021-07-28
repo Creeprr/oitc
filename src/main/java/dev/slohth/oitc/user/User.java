@@ -4,6 +4,7 @@ import dev.slohth.oitc.game.Game;
 import dev.slohth.oitc.utils.CC;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import javax.annotation.Nonnull;
@@ -16,7 +17,7 @@ public class User {
     private final UUID uuid;
     private Game game;
 
-    private PlayerInventory cached;
+    private ItemStack[] cached;
     private int killstreak = 0;
 
     public User(@Nonnull UUID uuid) { this.uuid = uuid; }
@@ -33,7 +34,7 @@ public class User {
         return false;
     }
 
-    public void cacheInventory() { this.cached = this.getPlayer().getInventory(); }
+    public void cacheInventory() { this.cached = this.getPlayer().getInventory().getContents().clone(); }
 
     @Nonnull
     public UUID getUuid() { return this.uuid; }
@@ -49,6 +50,6 @@ public class User {
     public void setKillstreak(int killstreak) { this.killstreak = killstreak; }
 
     @Nullable
-    public PlayerInventory getCached() { return this.cached; }
+    public ItemStack[] getCached() { return this.cached; }
 
 }
